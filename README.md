@@ -14,30 +14,6 @@ PyTorch版功能介绍
 - `uie_predictor.py`: 推理类。
 
 
-**目录**
-
-- [1. 模型简介](#模型简介)
-- [2. 应用示例](#应用示例)
-- [3. 开箱即用](#开箱即用)
-  - [3.1 实体抽取](#实体抽取)
-  - [3.2 关系抽取](#关系抽取)
-  - [3.3 事件抽取](#事件抽取)
-  - [3.4 评论观点抽取](#评论观点抽取)
-  - [3.5 情感分类](#情感分类)
-  - [3.6 跨任务抽取](#跨任务抽取)
-  - [3.7 模型选择](#模型选择)
-  - [3.8 更多配置](#更多配置)
-- [4. 训练定制](#训练定制)
-  - [4.1 代码结构](#代码结构)
-  - [4.2 数据标注](#数据标注)
-  - [4.3 模型微调](#模型微调)
-  - [4.4 模型评估](#模型评估)
-  - [4.5 定制模型一键预测](#定制模型一键预测)
-  - [4.6 实验指标](#实验指标)
-  - [4.7 模型部署](#模型部署)
-
-<a name="模型简介"></a>
-
 ## 1. 模型简介
 
 [UIE(Universal Information Extraction)](https://arxiv.org/pdf/2203.12277.pdf)：Yaojie Lu等人在ACL-2022中提出了通用信息抽取统一框架UIE。该框架实现了实体抽取、关系抽取、事件抽取、情感分析等任务的统一建模，并使得不同任务间具备良好的迁移和泛化能力。为了方便大家使用UIE的强大能力，PaddleNLP借鉴该论文的方法，基于ERNIE 3.0知识增强预训练模型，训练并开源了首个中文通用信息抽取模型UIE。该模型可以支持不限定行业领域和抽取目标的关键信息抽取，实现零样本快速冷启动，并具备优秀的小样本微调能力，快速适配特定的抽取目标。
@@ -56,33 +32,8 @@ PyTorch版功能介绍
 
 <a name="应用示例"></a>
 
-## 2. 应用示例
 
-UIE不限定行业领域和抽取目标，以下是一些零样本行业示例：
-
-- 医疗场景-专病结构化
-
-![image](https://user-images.githubusercontent.com/40840292/169017581-93c8ee44-856d-4d17-970c-b6138d10f8bc.png)
-
-- 法律场景-判决书抽取
-
-![image](https://user-images.githubusercontent.com/40840292/169017863-442c50f1-bfd4-47d0-8d95-8b1d53cfba3c.png)
-
-- 金融场景-收入证明、招股书抽取
-
-![image](https://user-images.githubusercontent.com/40840292/169017982-e521ddf6-d233-41f3-974e-6f40f8f2edbc.png)
-
-- 公安场景-事故报告抽取
-
-![image](https://user-images.githubusercontent.com/40840292/169018340-31efc1bf-f54d-43f7-b62a-8f7ce9bf0536.png)
-
-- 旅游场景-宣传册、手册抽取
-
-![image](https://user-images.githubusercontent.com/40840292/169018113-c937eb0b-9fd7-4ecc-8615-bcdde2dac81d.png)
-
-<a name="开箱即用"></a>
-
-## 3. 开箱即用
+## 2. 开箱即用
 
 ```uie_predictor```提供通用信息抽取、评价观点抽取等能力，可抽取多种类型的信息，包括但不限于命名实体识别（如人名、地名、机构名等）、关系（如电影的导演、歌曲的发行时间等）、事件（如某路口发生车祸、某地发生地震等）、以及评价维度、观点词、情感倾向等信息。用户可以使用自然语言自定义抽取目标，无需训练即可统一抽取输入文本中的对应信息。**实现开箱即用，并满足各类信息抽取需求**
 
@@ -125,7 +76,7 @@ python convert.py --no_validate_output
 
 <a name="实体抽取"></a>
 
-#### 3.1 实体抽取
+#### 2.1 实体抽取
 
   命名实体识别（Named Entity Recognition，简称NER），是指识别文本中具有特定意义的实体。在开放域信息抽取中，抽取的类别没有限制，用户可以自己定义。
 
@@ -214,280 +165,10 @@ python convert.py --no_validate_output
                   'text': 'Steve'}]}]
     ```
 
-<a name="关系抽取"></a>
-
-#### 3.2 关系抽取
-
-  关系抽取（Relation Extraction，简称RE），是指从文本中识别实体并抽取实体之间的语义关系，进而获取三元组信息，即<主体，谓语，客体>。
-
-  - 例如以"竞赛名称"作为抽取主体，抽取关系类型为"主办方"、"承办方"和"已举办次数", schema构造如下：
-
-  ```text
-  {
-    '竞赛名称': [
-      '主办方',
-      '承办方',
-      '已举办次数'
-    ]
-  }
-  ```
-
-    调用示例：
-
-  ```python
-  >>> schema = {'竞赛名称': ['主办方', '承办方', '已举办次数']} # Define the schema for relation extraction
-  >>> ie.set_schema(schema) # Reset schema
-  >>> pprint(ie('2022语言与智能技术竞赛由中国中文信息学会和中国计算机学会联合主办，百度公司、中国中文信息学会评测工作委员会和中国计算机学会自然语言处理专委会承办，已连续举办4届，成为全球最热门的中文NLP赛事之一。'))
-  [{'竞赛名称': [{'end': 13,
-              'probability': 0.7825402622754041,
-              'relations': {'主办方': [{'end': 22,
-                                    'probability': 0.8421710521379353,
-                                    'start': 14,
-                                    'text': '中国中文信息学会'},
-                                    {'end': 30,
-                                    'probability': 0.7580801847701935,
-                                    'start': 23,
-                                    'text': '中国计算机学会'}],
-                            '已举办次数': [{'end': 82,
-                                      'probability': 0.4671295049136148,
-                                      'start': 80,
-                                      'text': '4届'}],
-                            '承办方': [{'end': 39,
-                                    'probability': 0.8292706618236352,
-                                    'start': 35,
-                                    'text': '百度公司'},
-                                    {'end': 72,
-                                    'probability': 0.6193477885474685,
-                                    'start': 56,
-                                    'text': '中国计算机学会自然语言处理专委会'},
-                                    {'end': 55,
-                                    'probability': 0.7000497331473241,
-                                    'start': 40,
-                                    'text': '中国中文信息学会评测工作委员会'}]},
-              'start': 0,
-              'text': '2022语言与智能技术竞赛'}]}]
-  ```
-
-  - 例如以"person"作为抽取主体，抽取关系类型为"Company"和"Position", schema构造如下：
-
-    ```text
-    {
-      'Person': [
-        'Company',
-        'Position'
-      ]
-    }
-    ```
-
-    英文模型调用示例：
-
-    ```python
-    >>> schema = [{'Person': ['Company', 'Position']}]
-    >>> ie_en.set_schema(schema)
-    >>> pprint(ie_en('In 1997, Steve was excited to become the CEO of Apple.'))
-    [{'Person': [{'end': 14,
-                  'probability': 0.999631971804547,
-                  'relations': {'Company': [{'end': 53,
-                                            'probability': 0.9960158209451642,
-                                            'start': 48,
-                                            'text': 'Apple'}],
-                                'Position': [{'end': 44,
-                                              'probability': 0.8871063806420736,
-                                              'start': 41,
-                                              'text': 'CEO'}]},
-                  'start': 9,
-                  'text': 'Steve'}]}]
-    ```
-
-<a name="事件抽取"></a>
-
-#### 3.3 事件抽取
-
-  事件抽取 (Event Extraction, 简称EE)，是指从自然语言文本中抽取预定义的事件触发词(Trigger)和事件论元(Argument)，组合为相应的事件结构化信息。
-
-  - 例如抽取的目标是"地震"事件的"地震强度"、"时间"、"震中位置"和"震源深度"这些信息，schema构造如下：
-
-  ```text
-  {
-    '地震触发词': [
-      '地震强度',
-      '时间',
-      '震中位置',
-      '震源深度'
-    ]
-  }
-  ```
-
-    触发词的格式统一为`触发词`或``XX触发词`，`XX`表示具体事件类型，上例中的事件类型是`地震`，则对应触发词为`地震触发词`。
-
-    调用示例：
-
-  ```python
-  >>> schema = {'地震触发词': ['地震强度', '时间', '震中位置', '震源深度']} # Define the schema for event extraction
-  >>> ie.set_schema(schema) # Reset schema
-  >>> ie('中国地震台网正式测定：5月16日06时08分在云南临沧市凤庆县(北纬24.34度，东经99.98度)发生3.5级地震，震源深度10千米。')
-  [{'地震触发词': [{'text': '地震', 'start': 56, 'end': 58, 'probability': 0.9987181623528585, 'relations': {'地震强度': [{'text': '3.5级', 'start': 52, 'end': 56, 'probability': 0.9962985320905915}], '时间': [{'text': '5月16日06时08分', 'start': 11, 'end': 22, 'probability': 0.9882578028575182}], '震中位置': [{'text': '云南临沧市凤庆县(北纬24.34度，东经99.98度)', 'start': 23, 'end': 50, 'probability': 0.8551415716584501}], '震源深度': [{'text': '10千米', 'start': 63, 'end': 67, 'probability': 0.999158304648045}]}}]}]
-  ```
-
-  - 英文模型**暂不支持事件抽取**
-
-<a name="评论观点抽取"></a>
-
-#### 3.4 评论观点抽取
-
-  评论观点抽取，是指抽取文本中包含的评价维度、观点词。
-
-  - 例如抽取的目标是文本中包含的评价维度及其对应的观点词和情感倾向，schema构造如下：
-
-  ```text
-  {
-    '评价维度': [
-      '观点词',
-      '情感倾向[正向，负向]'
-    ]
-  }
-  ```
-
-    调用示例：
-
-  ```python
-  >>> schema = {'评价维度': ['观点词', '情感倾向[正向，负向]']} # Define the schema for opinion extraction
-  >>> ie.set_schema(schema) # Reset schema
-  >>> pprint(ie("店面干净，很清静，服务员服务热情，性价比很高，发现收银台有排队")) # Better print results using pprint
-  [{'评价维度': [{'end': 20,
-              'probability': 0.9817040258681473,
-              'relations': {'情感倾向[正向，负向]': [{'probability': 0.9966142505350533,
-                                            'text': '正向'}],
-                            '观点词': [{'end': 22,
-                                    'probability': 0.957396472711558,
-                                    'start': 21,
-                                    'text': '高'}]},
-              'start': 17,
-              'text': '性价比'},
-            {'end': 2,
-              'probability': 0.9696849569741168,
-              'relations': {'情感倾向[正向，负向]': [{'probability': 0.9982153274927796,
-                                            'text': '正向'}],
-                            '观点词': [{'end': 4,
-                                    'probability': 0.9945318044652538,
-                                    'start': 2,
-                                    'text': '干净'}]},
-              'start': 0,
-              'text': '店面'}]}]
-  ```
-
-  - 英文模型schema构造如下：
-
-    ```text
-    {
-      'Aspect': [
-        'Opinion',
-        'Sentiment classification [negative, positive]'
-      ]
-    }
-    ```
-
-    调用示例：
-
-    ```python
-    >>> schema = [{'Aspect': ['Opinion', 'Sentiment classification [negative, positive]']}]
-    >>> ie_en.set_schema(schema)
-    >>> pprint(ie_en("The teacher is very nice."))
-    [{'Aspect': [{'end': 11,
-                  'probability': 0.4301476415932193,
-                  'relations': {'Opinion': [{'end': 24,
-                                            'probability': 0.9072940447883724,
-                                            'start': 15,
-                                            'text': 'very nice'}],
-                                'Sentiment classification [negative, positive]': [{'probability': 0.9998571920670685,
-                                                                                  'text': 'positive'}]},
-                  'start': 4,
-                  'text': 'teacher'}]}]
-    ```
-
-<a name="情感分类"></a>
-
-#### 3.5 情感分类
-
-  - 句子级情感倾向分类，即判断句子的情感倾向是“正向”还是“负向”，schema构造如下：
-
-  ```text
-  '情感倾向[正向，负向]'
-  ```
-
-    调用示例：
-
-  ```python
-  >>> schema = '情感倾向[正向，负向]' # Define the schema for sentence-level sentiment classification
-  >>> ie.set_schema(schema) # Reset schema
-  >>> ie('这个产品用起来真的很流畅，我非常喜欢')
-  [{'情感倾向[正向，负向]': [{'text': '正向', 'probability': 0.9988661643929895}]}]
-  ```
-
-    英文模型schema构造如下：
-
-    ```text
-    '情感倾向[正向，负向]'
-    ```
-
-    英文模型调用示例：
-
-    ```python
-    >>> schema = 'Sentiment classification [negative, positive]'
-    >>> ie_en.set_schema(schema)
-    >>> ie_en('I am sorry but this is the worst film I have ever seen in my life.')
-    [{'Sentiment classification [negative, positive]': [{'text': 'negative', 'probability': 0.9998415771287057}]}]
-    ```
-
-<a name="跨任务抽取"></a>
-
-#### 3.6 跨任务抽取
-
-  - 例如在法律场景同时对文本进行实体抽取和关系抽取，schema可按照如下方式进行构造：
-
-  ```text
-  [
-    "法院",
-    {
-        "原告": "委托代理人"
-    },
-    {
-        "被告": "委托代理人"
-    }
-  ]
-  ```
-
-    调用示例：
-
-  ```python
-  >>> schema = ['法院', {'原告': '委托代理人'}, {'被告': '委托代理人'}]
-  >>> ie.set_schema(schema)
-  >>> pprint(ie("北京市海淀区人民法院\n民事判决书\n(199x)建初字第xxx号\n原告：张三。\n委托代理人李四，北京市 A律师事务所律师。\n被告：B公司，法定代表人王五，开发公司总经理。\n委托代理人赵六，北京市 C律师事务所律师。")) # Better print results using pprint
-  [{'原告': [{'end': 37,
-            'probability': 0.9949814024296764,
-            'relations': {'委托代理人': [{'end': 46,
-                                    'probability': 0.7956844697990384,
-                                    'start': 44,
-                                    'text': '李四'}]},
-            'start': 35,
-            'text': '张三'}],
-    '法院': [{'end': 10,
-            'probability': 0.9221074192336651,
-            'start': 0,
-            'text': '北京市海淀区人民法院'}],
-    '被告': [{'end': 67,
-            'probability': 0.8437349536631089,
-            'relations': {'委托代理人': [{'end': 92,
-                                    'probability': 0.7267121388225029,
-                                    'start': 90,
-                                    'text': '赵六'}]},
-            'start': 64,
-            'text': 'B公司'}]}]
-  ```
 
 <a name="模型选择"></a>
 
-#### 3.7 模型选择
+#### 2.2 模型选择
 
 - 多模型选择，满足精度、速度要求
 
@@ -552,7 +233,7 @@ python convert.py --no_validate_output
 
 <a name="更多配置"></a>
 
-#### 3.8 更多配置
+#### 2.3 更多配置
 
 ```python
 >>> from uie_predictor import UIEPredictor
@@ -571,12 +252,12 @@ python convert.py --no_validate_output
 
 <a name="训练定制"></a>
 
-## 4. 训练定制
+## 3. 训练定制
 
 对于简单的抽取目标可以直接使用```UIEPredictor```实现零样本（zero-shot）抽取，对于细分场景我们推荐使用轻定制功能（标注少量数据进行模型微调）以进一步提升效果。下面通过`报销工单信息抽取`的例子展示如何通过5条训练数据进行UIE模型微调。
 <a name="代码结构"></a>
 
-#### 4.1 代码结构
+#### 3.1 代码结构
 
 ```shell
 .
@@ -591,7 +272,7 @@ python convert.py --no_validate_output
 
 <a name="数据标注"></a>
 
-#### 4.2 数据标注
+#### 3.2 数据标注
 
 我们推荐使用数据标注平台[doccano](https://github.com/doccano/doccano) 进行数据标注，本示例也打通了从标注到训练的通道，即doccano导出数据后可通过[doccano.py](./doccano.py)脚本轻松将数据转换为输入模型时需要的形式，实现无缝衔接。标注方法的详细介绍请参考[doccano数据标注指南](doccano.md)。
 
@@ -665,7 +346,7 @@ python labelstudio2doccano.py --labelstudio_file label-studio.json
 
 <a name="模型微调"></a>
 
-#### 4.3 模型微调
+#### 3.3 模型微调
 
 通过运行以下命令进行模型微调：
 
@@ -704,7 +385,7 @@ python finetune.py \
 
 <a name="模型评估"></a>
 
-#### 4.4 模型评估
+#### 3.4 模型评估
 
 通过运行以下命令进行模型评估：
 
@@ -760,7 +441,7 @@ python evaluate.py \
 
 <a name="定制模型一键预测"></a>
 
-#### 4.5 定制模型一键预测
+#### 3.5 定制模型一键预测
 
 `UIEPredictor`装载定制模型，通过`task_path`指定模型权重文件的路径，路径下需要包含训练好的模型权重文件`pytorch_model.bin`。
 
@@ -792,7 +473,7 @@ python evaluate.py \
 
 <a name="实验指标"></a>
 
-#### 4.6 实验指标
+#### 3.6 实验指标
 
 我们在互联网、医疗、金融三大垂类自建测试集上进行了实验：
 
@@ -812,7 +493,7 @@ python evaluate.py \
 
 <a name="模型部署"></a>
 
-#### 4.7 模型部署
+#### 3.7 模型部署
 
 以下是UIE Python端的部署流程，包括环境准备、模型导出和使用示例。
 
